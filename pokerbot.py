@@ -1,15 +1,63 @@
 # Abstraction and Design 
 # Final Project: Harvard Hold'em Poker Bot
 # Collaborators: Bry Power, Michael Delaney, Esty Cohen, Qi Xiao
-
-
+#
 # ?? -> problem -> spec -> code
 # Understand, Specify, Design
 # poker(hands) -> hand
+
+import random #for 'shuffling' of cards
+
+# included as parameter in  deal function...
+#	mydeck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
+# Applied logic: Player 1 [0:5], Player 2 [5:10], etc.
+# 	ex. print deal(2) <-- 2 total hands w/ 5 cards
+#	    print deal(2,7) <-- 2 total hands w/ 7 cards
+def deal(numhands, n=5, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
+	"Shuffle the deck and deal out numhands n-card hands."
+	random.shuffle(deck)
+	return [deck[n*i:n*(i+1)] for i in range(numhands)]
+
 def poker(hands):
 	"Return the best hand: poker([hand, ...]) => hand"
-	return max(hands, key=hand_rank)
+	#must be able to handle ties between players thus allmax func
+	return allmax(hands, key=hand_rank)
+	
+def allmax(iterable, key=None):
+	"Return a list of all items equal to the  max of the iterable."
+	result, maxval = [], None
+	key = key or (lambda x: x)
+	for x in iterable:
+		xval = key(x)
+		if not result or xval > maxval:
+			result, maxval = [x], xval
+		elif xval == maxval:
+			result.append(x)
+	return result #now the poker func must be able to take in lists
 
+# better representation of hand_rank than old version commented out  below	
+def hand_rank(hand):
+	"Return a value indicating how high the hands ranks."
+	#counts is the count of each rank; ranks lists corresponding ranks
+	#E.g. '7 T 7 9 y' => counts = (3, 1, 1); ranks = (7, 10, 9)
+	groups = group(['--23456789TJQKA'.index(r) for r,s in hand])
+	counts, ranks = unzip(groups)
+	if ranks == (14, 5, 4, 3, 2):
+		ranks = (5, 4, 3, 2, 1)
+	straight = len(ranks) == 5 and max(ranks)-min(ranks) == 4
+	flush = len(set([s for r,s in hand])) == 1
+	return (9 if (5,) == counts else
+		8 if straight and flush else
+		7 if (4, 1) == counts else
+		6 if (3, 2) == counts else
+		5 if flush else
+		4 if straight else
+		3 if (3, 1, 1) == counts else
+		2 if (2, 2, 1) == counts else
+		1 if (2, 1, 1, 1) == counts else
+		0), ranks
+	
+''' old version of hand_rank that had much redundancy...
 def hand_rank(hand):
 	"Return a value indicating the ranking of a hand."
 	ranks = card_ranks(hand)
@@ -31,12 +79,42 @@ def hand_rank(hand):
 		return (1, kind(2, ranks), ranks)
 	else:
 		return (0, ranks)
-		
+'''	
+
+'''
+Another alternative that uses a look up table instead of a case statement.
+This is probably the best one to use.
+def hand_rank(hand):
+	"Return a value indicating how high the hands ranks."
+	#counts is the count of each rank; ranks lists corresponding ranks
+	#E.g. '7 T 7 9 y' => counts = (3, 1, 1); ranks = (7, 10, 9)
+	groups = group(['--23456789TJQKA'.index(r) for r,s in hand])
+	counts, ranks = unzip(groups)
+	if ranks == (14, 5, 4, 3, 2):
+		ranks = (5, 4, 3, 2, 1)
+	straight = len(ranks) == 5 and max(ranks)-min(ranks) == 4
+	flush = len(set([s for r,s in hand])) == 1
+	return max(count_rankings[counts], 4*straight + 5*flush), ranks
+	
+count_rankings = {(5,):10, (4,1):7, (3,2):6, (3, 1, 1):3, (2, 2, 1):2,
+					(2, 1, 1, 1):1, (1, 1, 1, 1, 1):0}
+
+'''
+
+def group(items):
+	"Return a list of [(count, x)...], highest count first, then highest x first."
+	groups = [(items.count(x), x) for x in set(items)]
+	return sorted(groups, reverse=True)
+	
+def unzip(pairs): return zip(*pairs)
+	
 def card_ranks(cards):
 	"Return a list of the ranks, sorted with higher first."
 	ranks = ['--23456789TJQKA'.index(r) for r, s in hand] # card consist of a rank and suit
 	ranks.sort(reverse=True)
-	return ranks
+	#needed mod to handle A-5 straight (special poker case)
+	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks 
+	
 
 def straight(ranks):
 	"Return True if the ordered ranks form a 5-card straight."
@@ -62,6 +140,10 @@ def two_pair(ranks):
 	else:
 		return None
 
+# Random deal % (10 possible results for the least common ranks in order to  
+# 	attempt to reproduce estimates that are close to actual probabilities)
+
+		
 # assertion tests
 def test():
 	"Case testing the functions"
@@ -104,3 +186,8 @@ def test():
 	return "Success"
 	
 print tests()
+
+# Elegance
+# The 'don't' repeat yourself principle.
+# Thus a need to change representation of hand_rank because 'kind(x, y)' is reused over and over.
+# We have two versions of hand_rank above, one commented out for comparison.
