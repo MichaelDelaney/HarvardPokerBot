@@ -6,10 +6,12 @@
 # Understand, Specify, Design
 # poker(hands) -> hand
 
+import random #for 'shuffling' of cards
+# following import are not in use yet, but we may want to integrate them when
+# 	we decide to add some elegancy. 
 import math
 import itertools
 from collections import defaultdict
-import random #for 'shuffling' of cards
 
 # included as parameter in  deal function...
 	deck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
