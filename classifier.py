@@ -1,7 +1,6 @@
 import functools
 
 class Classifier:
-
 	def prior_probability_rank(self,rank):
 		if (rank == 1):
 			return 0.0211
@@ -20,6 +19,8 @@ class Classifier:
 		elif (rank == 8):
 			return 0.09957
 		else:
+			return 0.59416
+
 
 	def prior_probability_hand(self, card1, card2, suitedness = False):
 		if (card1 == card2):
@@ -28,6 +29,8 @@ class Classifier:
 			return 0.00302
 		else:
 			return 0.00905
+
+
 
 	def probability(self, trained_probs_by_rank, action):
 		ratios = []
