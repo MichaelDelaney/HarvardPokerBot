@@ -6,10 +6,13 @@
 # Understand, Specify, Design
 # poker(hands) -> hand
 
+import math
+import itertools
+from collections import defaultdict
 import random #for 'shuffling' of cards
 
 # included as parameter in  deal function...
-#	mydeck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
+	deck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
 # Applied logic: Player 1 [0:5], Player 2 [5:10], etc.
 # 	ex. print deal(2) <-- 2 total hands w/ 5 cards
 #	    print deal(2,7) <-- 2 total hands w/ 7 cards
@@ -128,7 +131,8 @@ def flush(hand):
 def kind(n, ranks):
 	"Return the first rank that this hand has exactly n of, but return none if there is no n-of-a kind in the hand."
 	for r in ranks:
-		if ranks.count(r) == n: return r
+		if ranks.count(r) == n: 
+			return r
 	return None
 
 def two_pair(ranks):
@@ -142,7 +146,30 @@ def two_pair(ranks):
 
 # Random deal % (10 possible results for the least common ranks in order to  
 # 	attempt to reproduce estimates that are close to actual probabilities)
+# not yet fully integrated... will come back to
+def hand_percentage(n=700*100):
+	"Sample n random hands an dprint a table of percentages for each type of hand."
+	counts = [0] * 9
+	for i in range(n/10):
+		for hand in deal(10);
+			ranking = hand_rank(hand)[0]
+			counts[ranking] += 1
+	for i in reversed(range(9)):
+		print "%14s: %6.3f %%" % (hand_names[i], 100.*counts[i]/n)
+		
+'''
+Should produced percentage close to what wikipedia poker percentages:
 
+straight flush: 0.001 %
+4 kind: 0.019 %
+full house: 0.145 %
+flush: 0.198 %
+straight: 0.401 %
+3 kind: 2.118 %
+2 pair: 4.752 %
+pair: 42.329 %
+high card: 50.036 %
+'''
 		
 # assertion tests
 def test():
