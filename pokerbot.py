@@ -6,12 +6,19 @@
 # Understand, Specify, Design
 # poker(hands) -> hand
 
+# Bry shared an awesome link for a Poker Framework within the package index on python.org
+# (https://pypi.python.org/pypi/poker/0.22.1)
+# Alternatively, we are use the light framework below modelled from the design course on udacity.
+#
+
+
 import random #for 'shuffling' of cards
 # following import are not in use yet, but we may want to integrate them when
-# 	we decide to add some elegancy. 
+# 	its time to do some optimization 
 import math
 import itertools
 from collections import defaultdict
+
 
 # included as parameter in  deal function...
 	deck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
@@ -51,6 +58,7 @@ def hand_rank(hand):
 		ranks = (5, 4, 3, 2, 1)
 	straight = len(ranks) == 5 and max(ranks)-min(ranks) == 4
 	flush = len(set([s for r,s in hand])) == 1
+	#The strengths are represented by an integer
 	return (9 if (5,) == counts else
 		8 if straight and flush else
 		7 if (4, 1) == counts else
@@ -145,10 +153,26 @@ def two_pair(ranks):
 		return(pair, lowpair)
 	else:
 		return None
+		
+#Game Operation functions
+
+def call():
+#Bet just enough to stay in
+
+def check():
+#Stay in when no bet is needed to do some
+
+def fold():
+#Quit the hand, lose all money
+
+def raiseAmount():
+#Bet more than the minimum and force all other players who want to stay in to do the same
 
 # Random deal % (10 possible results for the least common ranks in order to  
 # 	attempt to reproduce estimates that are close to actual probabilities)
 # not yet fully integrated... will come back to
+
+''' import classifier.py for alternaitve probabilities
 def hand_percentage(n=700*100):
 	"Sample n random hands an dprint a table of percentages for each type of hand."
 	counts = [0] * 9
@@ -159,7 +183,7 @@ def hand_percentage(n=700*100):
 	for i in reversed(range(9)):
 		print "%14s: %6.3f %%" % (hand_names[i], 100.*counts[i]/n)
 		
-'''
+
 Should produced percentage close to what wikipedia poker percentages:
 
 straight flush: 0.001 %
@@ -173,7 +197,7 @@ pair: 42.329 %
 high card: 50.036 %
 '''
 		
-# assertion tests
+#Assertion Tests
 def test():
 	"Case testing the functions"
 	sf = "6C 7C 8C 9C TC".split() #straight flush (sf)
@@ -216,7 +240,7 @@ def test():
 	
 print tests()
 
-# Elegance
-# The 'don't' repeat yourself principle.
-# Thus a need to change representation of hand_rank because 'kind(x, y)' is reused over and over.
-# We have two versions of hand_rank above, one commented out for comparison.
+# Elegance:
+# We can't forget the 'don't' repeat yourself principle.
+# Thus a need to change representation of hand_rank is needed because 'kind(x, y)' is reused over and over.
+# We have three versions of hand_rank above, two commented out for later comparison.
