@@ -1,4 +1,5 @@
 import functools
+from player import Player
 
 class Classifier:
 	def prior_probability_rank(self,rank):
@@ -6,7 +7,7 @@ class Classifier:
 			return 0.0211
 		elif (rank == 2):
 			return 0.02263
-		elif (rank == 3):
+		elif (rank == 3): 
 			return 0.02565
 		elif (rank == 4):
 			return 0.03772
@@ -32,7 +33,7 @@ class Classifier:
 
 
 
-	def probability(self, trained_probs_by_rank, action):
+	def probabilities_dict (self, trained_probs_by_rank, action):
 		ratios = []
 		probabilities={}
 		for rank in trained_probs_by_rank:
@@ -47,3 +48,10 @@ class Classifier:
 			probabilities.update({rank:posterior_probability})
 			rank += 1
 		return probabilities
+
+	
+	# give the action and the rank the player had train the probabilities 
+	# and return the new probability of that rank given that action
+	def train (self, action, rank, player):
+		player.actions[action][rank] = player.actions[action][rank] + 1
+		return player.get_probability(action, rank)
