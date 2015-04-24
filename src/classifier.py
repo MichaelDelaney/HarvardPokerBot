@@ -1,7 +1,12 @@
 import functools
 from player import Player
 
+# when instantiating pass in the player object to be classified
 class Classifier:
+	def __init__(self, player):
+		self.player = player
+
+
 	def prior_probability_rank(self,rank):
 		if (rank == 1):
 			return 0.0211
@@ -33,12 +38,12 @@ class Classifier:
 
 
 
-	def probabilities_dict (self, trained_probs_by_rank, action):
+	def probabilities_dict (self, action):
 		ratios = []
 		probabilities={}
-		for rank in trained_probs_by_rank:
+		for rank in range(1, 9):
 			prior_probability = self.prior_probability_rank(rank)
-			prob = trained_probs_by_rank[rank].get(action)
+			prob = self.player.actions[action][rank]
 			prob_ratio = prior_probability*prob
 			ratios.append(prob_ratio)
 		normalizer = functools.reduce(lambda x, y: x + y, ratios)
@@ -49,9 +54,20 @@ class Classifier:
 			rank += 1
 		return probabilities
 
-	
+	def predict (self, action):
+		probabilities = self.probabilities_dict(action)
+		max_prob = 0
+		max_rank = ""
+		for rank, value in probabilities.items():
+			if (value > max_prob):
+				max_prob = value
+				max_rank = rank
+			else:
+				continue
+		return max_rank
+
 	# give the action and the rank the player had train the probabilities 
 	# and return the new probability of that rank given that action
-	def train (self, action, rank, player):
-		player.actions[action][rank] = player.actions[action][rank] + 1
-		return player.get_probability(action, rank)
+	def train (self, action, rank):
+		self.player.actions[action][rank] = self.player.actions[action][rank] + 1
+		return self.player.get_probability(action, rank)
