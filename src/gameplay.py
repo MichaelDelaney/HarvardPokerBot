@@ -1,10 +1,6 @@
 import pokerbot
-import players
-
 import random
-import math
-import itertools
-from collections import defaultdict
+
 
 # Player Object (can be placed within its own file later)
 class GamePlayer(object):
@@ -13,7 +9,7 @@ class GamePlayer(object):
         self._money = 50
         self._move = " "
 
-print(" *** Harvard Hold'em Poker Bot *** \n")
+print("\n *** Harvard Hold'em Poker Bot *** \n")
 
 # Ask user # of players
 print("Let's get the game started...")
@@ -35,7 +31,7 @@ print("$" + str(players[0]._money))
 print("Your hand:")
 print(players[0]._cards)
 
-# Player 1 Movie
+# Player 1 Move
 p1firstbet = int(input("\nPre-flop round!\nYou are the small blind. How much would you like to bet?\n"))
 players[0]._money -= p1firstbet
 
@@ -45,24 +41,38 @@ p2firstbet = p1firstbet * 2
 players[1]._money -= p2firstbet
 minimumbet = p2firstbet
 
-#   Randomly decides a round move for players
-#   I don't know what you want to make it based off of
-#   Maybe we can change it to a baseline of what a good or bad rank is
-#   pokerbot.hand_rank(players[2]._cards)
-for i in range(2, numplayers):
-    moveoptions = ['call', 'raised', 'fold']
-    players[i]._move = random.choice(moveoptions)
-
-# Making players make moves
-if players[i]._move == 'call':
-    call(i)
-elif players[i]._move == 'raised':
-    raised(i)
-elif players[i]._move == 'fold':
-    fold(i)
-else:
-    print("Invalid move")
-
-def call(num):
+pot = 0
+pot += (p1firstbet + p2firstbet)
+def called(num):
     players[num]._money -= minimumbet
+    global pot
+    pot += minimumbet
 
+def raised(num):
+    players[num]._money -= (minimumbet * 2)
+    global pot
+    pot += (minimumbet * 2)
+
+def folded(num):
+    players[num]._cards = []
+
+#   Randomly decides a round move for players
+for i in range(2, numplayers):
+    moveoptions = ['called', 'raised', 'folded']
+    players[i]._move = random.choice(moveoptions)
+    if players[i]._move == 'called':
+        called(i)
+    elif players[i]._move == 'raised':
+        raised(i)
+    elif players[i]._move == 'folded':
+        folded(i)
+    else:
+        print("Invalid move")
+
+# Simulating the player's moves
+print("Player 2 (Big Blind) doubled your bet with $" + str(p1firstbet * 2) + ".")
+for i in range(2, numplayers):
+    print("Player " + str(i+1) + " " + players[i]._move + ".")
+
+print("The pot is now at a total of $" + str(pot) + ".\n")
+print("The flop is...")
