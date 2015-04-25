@@ -1,6 +1,6 @@
 # Abstraction and Design 
 # Final Project: Harvard Hold'em Poker Bot
-# Collaborators: Bry Power, Michael Delaney, Esty Cohen, Qi Xiao
+# Collaborators: Bry Power, Michael Delaney, Esty Cohen
 #
 # ?? -> problem -> spec -> code
 # Understand, Specify, Design
