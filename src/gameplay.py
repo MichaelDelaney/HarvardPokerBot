@@ -96,13 +96,30 @@ for i in range(0, numplayers):
 print("\nWith the flop cards, your hand is now...")
 print(hands[0])
 
-
 # We'll remove this later, this just checks the winner at the start of the flop round
 # I just wanted to make sure things are working
+
+# Reveal player's hands
 print("\nHere comes the reveal of every player's hand!")
 print("Your hand: " + str(hands[0]))
 for i in range(1, numplayers):
-    print("Player " + str(i) + ": " + str(hands[i]))
+    if players[i]._move == "folded":
+        print("Player " + str(i) + ": folded out of round.")
+    else:
+        print("Player " + str(i+1) + ": " + str(hands[i]))
 
+# Determine the winner of round
 print("\nThe winning hand is...")
-print(pokerbot.poker(hands))
+winninghand = pokerbot.poker(hands)
+print(winninghand[0])
+
+if hands[0] == winninghand[0]:
+    print("You have won...Congratulations! ")
+    players[0]._money += pot
+    print("$" + str(pot)+" has been added to your balance")
+else:
+    for i in range(1, numplayers):
+        if hands[i] == winninghand[0]:
+            print("Player " + str(i+1) + " has won.")
+            players[i]._money += pot
+            print("$" + str(pot) +" has been added to Player " + str(i+1) +"'s balance.")
