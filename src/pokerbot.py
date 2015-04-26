@@ -14,11 +14,13 @@ import random
 import math
 import itertools
 from collections import defaultdict
+import classifier
+import player
 
 # Determines winner of round
 def poker(hands):
-	"poker([hand, ...]) => hand"
-	return allmax(hands, key=hand_rank)
+    'poker([hand, ...]) => hand'
+    return allmax(hands, key=hand_rank)
 
 # Capable of handling instance of ties
 def allmax(iterable, key=None):
@@ -102,6 +104,11 @@ deck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
 def deal(numhands, n=2, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
 	random.shuffle(deck) #deck randomizer
 	return [deck[n*i:n*(i+1)] for i in range(numhands)]
+
+# Flop
+def flop(flophands, n=3, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
+	random.shuffle(deck) #deck randomizer
+	return [deck[n*i:n*(i+1)] for i in range(flophands)]
 
 # Need to add exhaustive testing
 # Some example below
