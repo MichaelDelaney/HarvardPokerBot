@@ -1,13 +1,17 @@
+import sqlite3
 import functools
 from player import Player
 
 # when instantiating pass in the player object to be classified
 class Classifier:
+
 	def __init__(self, player):
 		self.player = player
 
+	db = sqlite3.connect('pokerbot.db')
+	cursor = db.cursor()
 
-	def prior_probability_rank(self,rank):
+	def prior_probability_rank(self, rank):
 		if (rank == 1):
 			return 0.0211
 		elif (rank == 2):
@@ -27,30 +31,26 @@ class Classifier:
 		else:
 			return 0.59416
 
-
-	def prior_probability_hand(self, card1, card2, suitedness = False):
-		if (card1 == card2):
-			return 0.00452
-		elif (suitedness == True):
-			return 0.00302
-		else:
-			return 0.00905
-
-
-
-	def probabilities_dict (self, action):
+	def probabilities_dict (self, action, round, board_rank = 7):
 		ratios = []
 		probabilities={}
 		for rank in range(1, 9):
 			prior_probability = self.prior_probability_rank(rank)
-			prob = self.player.actions[action][rank]
+			if (round == "pre_flop"):
+				prob = self.player.get_probability(action, rank, round)
+			elif (round == "flop"):
+				prob = self.player.flop_actions[action][flop_rank][rank]
+			elif (round == "turn"):
+				prob = self.player.flop_actions[action][flop_rank][rank]
+			else:
+				prob = self.player.flop_actions[action][flop_rank][rank]
 			prob_ratio = prior_probability*prob
 			ratios.append(prob_ratio)
 		normalizer = functools.reduce(lambda x, y: x + y, ratios)
 		rank = 1
 		for ratio in ratios:
 			posterior_probability = ratio/normalizer
-			probabilities.update({rank:posterior_probability})
+			probabilities.update({rank: posterior_probability})
 			rank += 1
 		return probabilities
 
@@ -64,10 +64,27 @@ class Classifier:
 				max_rank = rank
 			else:
 				continue
-		return max_rank
+		if (max_rank == 0):
+			return 8
+		else:
+			return max_rank
 
-	# give the action and the rank the player had train the probabilities 
+	# give the action and the rank the player had train the probabilities
 	# and return the new probability of that rank given that action
-	def train (self, action, rank):
-		self.player.actions[action][rank] = self.player.actions[action][rank] + 1
-		return self.player.get_probability(action, rank)
+	def train (self, action, rank, round, board_rank = 7):
+		params = (self.player.name, action, rank, 1)
+		if (round == "pre_flop"):
+			self.cursor.execute('SELECT probability FROM probabilities LEFT JOIN players ON probabilities.player = players.id WHERE players.name = ? AND action = ? AND hand_rank = ? AND round = ?', params)
+			data = self.cursor.fetchall()
+			if len(data)==0:
+				cols = (self.player.get_id()[0], action, round, board_rank, rank)
+				self.db.execute('INSERT INTO probabilities (player, action, round, board_rank, hand_rank, probability) VALUES (?, ?, ?, ?, ?, 1)', cols)
+			else:
+				self.db.execute('UPDATE probabilities SET probability = probability + 1 LEFT JOIN players ON probabilities.player = players.id  WHERE players.name = ? AND action = ? AND hand_rank = ? AND round = ?', params)
+		elif (round == "flop"):
+			self.player.flop_actions[action][board_rank][rank] += 1
+		elif (round == "turn"):
+			self.player.flop_actions[action][flop_rank][rank] += 1
+		else:
+			self.player.flop_actions[action][flop_rank][rank] += 1
+		return self.player.get_probability(action, rank, round, board_rank)
