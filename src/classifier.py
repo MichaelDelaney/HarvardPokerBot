@@ -43,7 +43,7 @@ class Classifier:
 		probabilities={}
 		for rank in range(1, 9):
 			prior_probability = self.prior_probability_rank(rank)
-			prob = self.player.actions[action][rank]
+			prob = self.player.get_probability(action, rank)
 			prob_ratio = prior_probability*prob
 			ratios.append(prob_ratio)
 		normalizer = functools.reduce(lambda x, y: x + y, ratios)

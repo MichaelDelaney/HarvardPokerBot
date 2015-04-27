@@ -18,7 +18,3 @@ class Player:
 	# get the probability of a rank given the action
 	def get_probability(self, action, rank):
 		return self.actions[action].get(rank) / self.times_trained(action)
-
-	def train (self, action, rank):
-		self.actions[action][rank] = self.actions[action][rank] + 1
-		return self.get_probability(action, rank)
