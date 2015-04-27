@@ -1,7 +1,9 @@
 import sqlite3
 import functools
 import math
+from decimal import *
 from player import Player
+from models import *
 
 # when instantiating pass in the player object to be classified
 class Classifier:
@@ -9,47 +11,81 @@ class Classifier:
 	def __init__(self, player):
 		self.player = player
 
-	db = sqlite3.connect('pokerbot.db')
-	cursor = db.cursor()
+	database.connect()
+	#db = sqlite3.connect('pokerbot.db')
+	#cursor = db.cursor()
 
 	def prior_probability_rank(self, rank):
 		if (rank == 1):
-			return 0.0211
+			return Decimal(0.0211)
 		elif (rank == 2):
-			return 0.02263
+			return Decimal(0.02263)
 		elif (rank == 3): 
-			return 0.02565
+			return Decimal(0.02565)
 		elif (rank == 4):
-			return 0.03772
+			return Decimal(0.03772)
 		elif (rank == 5):
-			return 0.07093
+			return Decimal(0.07093)
 		elif (rank == 6):
-			return 0.05129
+			return Decimal(0.05129)
 		elif (rank == 7):
-			return 0.07695
+			return Decimal(0.07695)
 		elif (rank == 8):
-			return 0.09957
+			return Decimal(0.09957)
 		else:
-			return 0.59416
+			return Decimal(0.59416)
 
-	def probabilities_dict (self, action, round, board_rank = 8):
+	def get_trained_data(self, round, board_rank=8):
+		actions = []
+		query = (Probabilities.select(Probabilities.action, Probabilities.hand_rank, Probabilities.probability, Probabilities.board_rank)
+				.join(Players)
+				.where(Players.name == self.player.name)
+				.where(Probabilities.round == round)
+				.where(Probabilities.board_rank == board_rank))
+		d = query.execute()
+		for row in d:
+			actions.append(row.__dict__)
+		return actions
+
+	# get the number of times this player has been trained for a given action
+	def times_trained (self, action, round, board_rank=8):
+		actions = self.get_trained_data(round, board_rank)
+		total = 0
+		for row in actions:
+			if (row['_data']['action'] == action):
+				total += row['_data']['probability']
+		return total
+
+	def get_probability(self, action, rank, round, board_rank=8):
+		actions = self.get_trained_data(round, board_rank)
+		prob = 0
+		for row in actions:
+			if (row['_data']['action'] == action):
+				if (row['_data']['hand_rank'] == rank):
+					prob = row['_data']['probability'] / self.times_trained(action, round, board_rank)
+		return prob
+
+	def probabilities_dict (self, action, round, board_rank=8):
 		ratios = []
 		probabilities={}
 		for rank in range(1, 9):
 			prior_probability = self.prior_probability_rank(rank)
-			prob = self.player.get_probability(action, rank, round, board_rank)
-			prob_ratio = prior_probability*prob
+			prob = self.get_probability(action, rank, round, board_rank)
+			prob_ratio = prior_probability * prob
 			ratios.append(prob_ratio)
 		normalizer = functools.reduce(lambda x, y: x + y, ratios)
 		rank = 1
 		for ratio in ratios:
-			posterior_probability = ratio/normalizer
+			if (normalizer != 0):
+				posterior_probability = ratio/normalizer
+			else:
+				posterior_probability = 0
 			probabilities.update({rank: posterior_probability})
 			rank += 1
 		return probabilities
 
-	def predict (self, action):
-		probabilities = self.probabilities_dict(action)
+	def predict (self, action, round, board_rank=8):
+		probabilities = self.probabilities_dict(action, round, board_rank)
 		max_prob = 0
 		max_rank = ""
 		for rank, value in probabilities.items():
@@ -59,19 +95,53 @@ class Classifier:
 			else:
 				continue
 		if (max_rank == 0):
-			return 8
+			return 9
 		else:
 			return max_rank
+
+	def row_exists(self, action, rank, round, board_rank = 8):
+		rows = []
+		query = (Probabilities.select()
+				.where(Probabilities.action == action)
+				.where(Probabilities.hand_rank ==  rank)
+				.where(Probabilities.round == round)
+				.where(Probabilities.board_rank == board_rank))
+		d = query.execute()
+		for row in d:
+			rows.append(row.__dict__)
+		if (rows == []):
+			False
+		else:
+			True
+
+	def create_new_training_record(self, action, rank, round, board_rank = 8):
+		query = (Probabilities.create(
+			player = self.player.id, 
+			action = action, 
+			hand_rank = rank, 
+			round = round, 
+			board_rank = board_rank, 
+			probability = 1))
+		d = query.execute()
+		return d
 
 	# give the action and the rank the player had train the probabilities
 	# and return the new probability of that rank given that action
 	def train (self, action, rank, round, board_rank = 8):
-		try:
-			cols = (self.player.get_id()[0], action, round, board_rank, rank)
-			self.db.execute('INSERT INTO probabilities (player, action, round, board_rank, hand_rank, probability) VALUES (?, ?, ?, ?, ?, 1)', cols)
-		except IntegrityError:
-			cols = (self.player.name, action, rank, round)
-			self.db.execute('UPDATE probabilities SET probability = probability + 1 LEFT JOIN players ON probabilities.player = players.id  WHERE players.name = ? AND action = ? AND hand_rank = ? AND round = ?', cols)
+		if (self.row_exists(action, rank, round, board_rank)):
+			query = (Probabilities.update(probability = Probabilities.probability + 1)
+				.where(Probabilities.player == self.player.id)
+				.where(Probabilities.action == action)
+				.where(Probabilities.hand_rank == rank)
+				.where(Probabilities.round == round)
+				.where(Probabilities.board_rank == board_rank))
+			query.execute()
+			#cols = (self.player.get_id()[0], action, rank, round)
+			#self.db.execute('UPDATE probabilities SET probability = probability + 1 WHERE player = ? AND action = ? AND hand_rank = ? AND round = ?', cols)
+		else:
+			self.create_new_training_record(action, rank, round, board_rank)
+			#cols = (self.player.get_id()[0], action, round, board_rank, rank)
+			#self.db.execute('INSERT INTO probabilities (player, action, round, board_rank, hand_rank, probability) VALUES (?, ?, ?, ?, ?, 1)', cols)
 		return self.player.get_probability(action, rank, round, board_rank)
 
     # predicting the test set

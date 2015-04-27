@@ -84,7 +84,7 @@ def kind(n, ranks):
 		if ranks.count(r) == n: 
 			return r
 	return None
-
+ 
 def two_pair(ranks):
 	pair = kind(2, ranks)
 	lowpair = kind(2, list(reversed(ranks)))
