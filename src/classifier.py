@@ -1,5 +1,6 @@
 import sqlite3
 import functools
+import math
 from player import Player
 
 # when instantiating pass in the player object to be classified
@@ -88,3 +89,34 @@ class Classifier:
 		else:
 			self.player.flop_actions[action][flop_rank][rank] += 1
 		return self.player.get_probability(action, rank, round, board_rank)
+
+
+    # predicting the test set
+
+
+    def predict_probability(self, test):
+        probabilities = []
+        for i in range(len(test)):
+            result = predict(self, test[i])
+            probabilities.append(result)
+        return probabilities
+
+
+    # def mean(action):
+    #      return sum(action)/float(len(action))
+
+    #    def stdev(action):
+    #       avg = mean(action)
+    #      variance = sum([pow(x-avg,2) for x in action])/float(len(action)-1)
+    #    return math.sqrt(variance)
+
+
+    def accuracy(test, probabilities):
+        exponent = math.exp(-(math.pow(x - mean, 2) / (2 * math.pow(stdev, 2))))
+        return (1 / (math.sqrt(2 * math.pi) * stdev)) * exponent
+
+#   def normalize(possibilities):
+#        possibility_sum = sum(possibilities)
+#        for hypothesis in xrange(0,101):
+#            possibility = possibilities[hypothesis]
+#            possibilities[hypothesis] = possibility/possibility_sum
