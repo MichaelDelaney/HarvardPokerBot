@@ -63,7 +63,7 @@ class Classifier:
 					prob = row['_data']['probability'] / self.times_trained(action, round, board_rank)
 		return prob
 
-	def probabilities_dict (self, action, round, board_rank=8):
+	def _probabilities_dict (self, action, round, board_rank=8):
 		ratios = []
 		probabilities={}
 		for rank in range(1, 9):
@@ -82,22 +82,8 @@ class Classifier:
 			rank += 1
 		return probabilities
 
-	def predict (self, action, round, board_rank=8):
-		probabilities = self.probabilities_dict(action, round, board_rank)
-		max_prob = 0
-		max_rank = ""
-		for rank, value in probabilities.items():
-			if (value > max_prob):
-				max_prob = value
-				max_rank = rank
-			else:
-				continue
-		if (max_rank == 0):
-			return 9
-		else:
-			return max_rank
-
-	def row_exists(self, action, rank, round, board_rank = 8):
+	
+	def _row_exists(self, action, rank, round, board_rank = 8):
 		rows = []
 		query = (Probabilities.select()
 				.where(Probabilities.action == action)
@@ -132,6 +118,22 @@ class Classifier:
 				board_rank = board_rank, 
 				probability = 1))
 		return self.get_probability(action, rank, round, board_rank)
+
+	def predict (self, action, round, board_rank=8):
+		probabilities = self._probabilities_dict(action, round, board_rank)
+		max_prob = 0
+		max_rank = ""
+		for rank, value in probabilities.items():
+			if (value > max_prob):
+				max_prob = value
+				max_rank = rank
+			else:
+				continue
+		if (max_rank == 0):
+			return 9
+		else:
+			return max_rank
+
 
     # predicting the test set
 	def predict_probability(self, test):
