@@ -12,8 +12,6 @@ class Classifier:
 		self.player = player
 
 	database.connect()
-	#db = sqlite3.connect('pokerbot.db')
-	#cursor = db.cursor()
 
 	def prior_probability_rank(self, rank):
 		if (rank == 1):
@@ -114,35 +112,26 @@ class Classifier:
 		else:
 			True
 
-	def create_new_training_record(self, action, rank, round, board_rank = 8):
-		query = (Probabilities.create(
-			player = self.player.id, 
-			action = action, 
-			hand_rank = rank, 
-			round = round, 
-			board_rank = board_rank, 
-			probability = 1))
-		d = query.execute()
-		return d
-
 	# give the action and the rank the player had train the probabilities
 	# and return the new probability of that rank given that action
 	def train (self, action, rank, round, board_rank = 8):
-		if (self.row_exists(action, rank, round, board_rank)):
-			query = (Probabilities.update(probability = Probabilities.probability + 1)
-				.where(Probabilities.player == self.player.id)
-				.where(Probabilities.action == action)
-				.where(Probabilities.hand_rank == rank)
-				.where(Probabilities.round == round)
-				.where(Probabilities.board_rank == board_rank))
-			query.execute()
-			#cols = (self.player.get_id()[0], action, rank, round)
-			#self.db.execute('UPDATE probabilities SET probability = probability + 1 WHERE player = ? AND action = ? AND hand_rank = ? AND round = ?', cols)
-		else:
-			self.create_new_training_record(action, rank, round, board_rank)
-			#cols = (self.player.get_id()[0], action, round, board_rank, rank)
-			#self.db.execute('INSERT INTO probabilities (player, action, round, board_rank, hand_rank, probability) VALUES (?, ?, ?, ?, ?, 1)', cols)
-		return self.player.get_probability(action, rank, round, board_rank)
+		try:
+			row = (Probabilities.select()
+					.where(Probabilities.action == action)
+					.where(Probabilities.hand_rank ==  rank)
+					.where(Probabilities.round == round)
+					.where(Probabilities.board_rank == board_rank).get())
+			row.probability += 1
+			row.save()
+		except:
+			(Probabilities.create(
+				player = self.player.id, 
+				action = action, 
+				hand_rank = rank, 
+				round = round, 
+				board_rank = board_rank, 
+				probability = 1))
+		return self.get_probability(action, rank, round, board_rank)
 
     # predicting the test set
 	def predict_probability(self, test):
