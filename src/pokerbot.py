@@ -14,8 +14,7 @@ import random
 import math
 import itertools
 from collections import defaultdict
-import classifier
-import player
+
 
 # Determines winner of round
 def poker(hands):
@@ -61,7 +60,7 @@ def group(items):
 def unzip(pairs): return zip(*pairs)
 
 # Each card has a value rank and suit
-def card_ranks(cards):
+def card_ranks(hand):
 	"Return a list of the ranks, sorted with higher first."
 	ranks = ['--23456789TJQKA'.index(r) for r, s in hand] 
 	ranks.sort(reverse=True)
@@ -84,7 +83,7 @@ def kind(n, ranks):
 		if ranks.count(r) == n: 
 			return r
 	return None
- 
+
 def two_pair(ranks):
 	pair = kind(2, ranks)
 	lowpair = kind(2, list(reversed(ranks)))
@@ -109,6 +108,20 @@ def deal(numhands, n=2, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
 def flop(flophands, n=3, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
 	random.shuffle(deck) #deck randomizer
 	return [deck[n*i:n*(i+1)] for i in range(flophands)]
+
+# Turn
+def turn(turncard, n=1, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
+	random.shuffle(deck) #deck randomizer
+	return [deck[n*i:n*(i+1)] for i in range(turncard)]
+
+# Need functionality to handle hand larger than 5 cards
+def best_hand(hand):
+    return max(itertools.combinations(hand, 5), key=hand_rank)
+
+def test_best_hand():
+    assert(sorted(best_hand("6C 7C 8C 9C TC 5C JS".split()))
+            ==['6C', '7C', '8C', '9C', 'TC'])
+    return 'test_best_hand passes'
 
 # Need to add exhaustive testing
 # Some example below
