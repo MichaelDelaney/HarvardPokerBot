@@ -19,6 +19,10 @@ print("Welcome. Let's get the game started...")
 numplayers = 5
 players = [GamePlayer() for i in range(0, numplayers)]
 
+# Need extra hands which will prevent duplicates
+# Need 7 extra cards total
+communityCards = 3 #This is 3 pairs, so 6 cards
+
 # Request User's Name (User is Player[0])
 players[0]._name = input("Enter your name: \n")
 
@@ -31,9 +35,14 @@ for i in range(0, 3):
     sys.stdout.write("\rDealing hole cards....")
     time.sleep(.3)
     sys.stdout.write("\rDealing hole cards.....")
-hands = pokerbot.deal(numplayers+1) #Added 1 for dealer's hand, he will be hands[5]
+hands = pokerbot.deal(numplayers+1+communityCards) #Added 1 for dealer's hand, he will be hands[5]
+
 for i in range(0, numplayers):
     players[i]._cards = hands[i]
+
+flopCards = [hands[7][0]] + hands[6]
+turnCards = [hands[7][1]]
+riverCards = [hands[8][0]]
 
 # Displays User's Balance and Hand
 print("\n\nYour initial balance: ")
@@ -154,16 +163,17 @@ if count > 0:
     print("The pot is now at a total of $" + str(pot) + ".\n")
     time.sleep(1)
 
+#####################
+# Reveal Flop Cards
+#####################
 # Flop - Dealer shows 3 Community Cards
 print("The flops cards are...")
-flophands = pokerbot.flop(1)
-flopcards = flophands[0]
-print(flopcards)
+print(flopCards)
 time.sleep(2)
 
 # Update the hands of the players with the flop cards
 for i in range(0, numplayers):
-    players[i]._cards += flopcards
+    players[i]._cards += flopCards
     hands[i] = players[i]._cards
 
 # User selects a move (bet) for the flop round
@@ -208,25 +218,23 @@ for i in range(1, numplayers):
         print("Player " + str(i+1) + " " + players[i]._move + ".")
         time.sleep(1)
 
-########################################################
-####     TURN ROUND
-########################################################
+#####################
+# Reveal Turn Card
+#####################
 # Turn - Dealer shows 1 More Community Card
 print("\nThe turn card is...")
-turnhands = pokerbot.turn(1)
-turncards = turnhands[0]
-print(turncards)
+print(turnCards)
 time.sleep(2)
 
 # Show all community cards
 print("The 4 community cards so far are...")
-print(turncards+flopcards)
+print(turnCards+flopCards)
 time.sleep(1)
 
 # Update the hands of the players with the turn cards
 for i in range(0, numplayers):
     if players[i]._move != "folded":
-        players[i]._cards += turncards
+        players[i]._cards += turnCards
         hands[i] = players[i]._cards
 
 # Show new hand including flop and turn cards
@@ -267,27 +275,25 @@ for i in range(1, numplayers):
         print("Player " + str(i+1) + " " + players[i]._move + ".")
         time.sleep(1)
 
-########################################################
-#### START OF RIVER
-#######################################################
+######################
+# Reveal River Card
+######################
+
 # Turn - Dealer shows 1 More Community Card
 print("\nThe river card is...")
-riverhands = pokerbot.turn(1)
-rivercards = riverhands[0]
-print(rivercards)
+print(riverCards)
 time.sleep(2)
 
 # Show all community cards
 print("The 5 community cards so far are...")
-print(rivercards+turncards+flopcards)
+print(riverCards+turnCards+flopCards)
 time.sleep(1)
 
 # Update the hands of the players with the turn cards
 for i in range(0, numplayers):
     if players[i]._move != "folded":
-        players[i]._cards += rivercards
+        players[i]._cards += riverCards
         hands[i] = players[i]._cards
-
 
 # Show new hand including flop and turn cards
 if players[0]._move != "folded":
@@ -305,7 +311,6 @@ if players[0]._move != "folded":
     print(hands[0])
     usermove = input("\nWould you like to call, raise , or fold? \n")
     move(usermove)
-
 
 # Other player's make move in flop round
 for i in range(1, numplayers):
@@ -328,21 +333,20 @@ for i in range(1, numplayers):
         print("Player " + str(i+1) + " " + players[i]._move + ".")
         time.sleep(1)
 
-########################################################
-#### REVEALING HANDS AND WINNER
-#######################################################
-
+####################
+# Reveal The Winner
+####################
 
 print("\nHere comes the reveal of every player's best ranked hand!")
 # Turn - Dealer shows 1 More Community Card
-dealerhands = pokerbot.deal(1)
-dealercards = dealerhands[0]
+dealercards = hands[5]
+print("\nThese are the dealers cards:" + str(dealercards) + "\n")
 
 # Call community cards to dealer's hand
-dealercards = dealercards + flopcards + turncards + rivercards
+dealercards = dealercards + flopCards + turnCards + riverCards
 hands[5] = list(pokerbot.best_hand(dealercards))
 time.sleep(1)
-print("The Dealer's hand is: " + str(hands[5]))
+print("The Dealer's best ranked hand is: " + str(hands[5]))
 
 if players[0]._move != "folded":
     print("Your hand: " + str(hands[0]))
@@ -358,7 +362,7 @@ for i in range(1, numplayers):
 # Before determining winner, make sure there are no null hands going
 # going in as input in poker() func
 winningHands = []
-for i in range(0, numplayers+1):
+for i in range(0, numplayers+1): #Plys 1 for the dealers hand
     if hands[i] != []:
         winningHands += [hands[i]]
 
