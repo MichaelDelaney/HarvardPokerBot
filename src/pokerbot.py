@@ -121,16 +121,6 @@ def deal(numhands, n=2, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
 	random.shuffle(deck) #deck randomizer
 	return [deck[n*i:n*(i+1)] for i in range(numhands)]
 
-# Flop
-def flop(flophands, n=3, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
-	random.shuffle(deck) #deck randomizer
-	return [deck[n*i:n*(i+1)] for i in range(flophands)]
-
-# Turn
-def turn(turncard, n=1, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
-	random.shuffle(deck) #deck randomizer
-	return [deck[n*i:n*(i+1)] for i in range(turncard)]
-
 # Need functionality to handle hand larger than 5 cards
 def best_hand(hand):
     return max(itertools.combinations(hand, 5), key=hand_rank)
