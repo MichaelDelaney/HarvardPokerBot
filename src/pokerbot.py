@@ -66,6 +66,23 @@ def card_ranks(hand):
 	ranks.sort(reverse=True)
 	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks 
 
+def suited(hand):
+	suits = []
+	for card in hand:
+		parts = list(card)
+		suits.append(parts[1])
+	return len(set(iterator)) <= 1
+		
+
+
+def hole_ranks(hand):
+	ranks = card_ranks(hand)
+	if (ranks == [14, 14] or [13, 13] or [12, 12] or [11, 11] or ([14, 13] and suited(hand))):
+		return 1
+	else:
+		return 9
+
+print(hole_ranks(['AD', 'AH']))
 # RANKS
 # Straight: 5-card straight
 # Flush: all cards are the same suit 
