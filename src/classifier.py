@@ -129,7 +129,7 @@ class Classifier:
 				max_rank = rank
 			else:
 				pass
-		if (max_rank == 0):
+		if (max_rank == 0 or not max_rank):
 			return 9
 		else:
 			return max_rank
@@ -163,6 +163,6 @@ class Classifier:
 #            possibility = possibilities[hypothesis]
 #            possibilities[hypothesis] = possibility/possibility_sum
 
-bry = Player('test_player')
+bry = Player('bry')
 c = Classifier(bry)
 print(c.predict(1, 1))

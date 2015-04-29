@@ -22,6 +22,7 @@ small_blind = 0
 big_blind = 1
 player_bet = 0
 communityCards = 3
+round = 1
 
 def menu_loop():
 	"""show the menu"""
@@ -33,7 +34,9 @@ def menu_loop():
 
 def checked(num):
 	"""check"""
-	global action 
+	global action
+	global round
+	classifier.train(action, rank, round)
 	action = 5
 
 
@@ -43,6 +46,8 @@ def called(num):
 	action = 3
 	global minimumbet
 	global player_bet
+	global round
+	classifier.train(action, rank, round)
 	player_bet= minimumbet
 	players[num]._money -= minimumbet
 	global pot
@@ -65,7 +70,9 @@ def bet(num):
 	round_bet = int(input("\nHow much would you like to bet?\n").strip())
 	player_bet += round_bet
 	global minimumbet
+	global round
 	players[num]._money -= (minimumbet + bet)
+	classifier.train(action, rank, round)
 	global pot
 	pot += (minimumbet + round_bet)
 
@@ -80,6 +87,9 @@ def raised(num):
 	global minimumbet
 	players[num]._money -= (minimumbet + round_bet)
 	global pot
+	global round
+	rank = pokerbot.hole_rank(players[0]._cards)
+	classifier.train(action, rank, round)
 	pot += (minimumbet + round_bet)
 	minimumbet += round_bet
 
@@ -97,10 +107,12 @@ def bot_raise(i):
 # Quit round - The player loses the money they invested
 def folded(num):
 	"""fold"""
-	global action 
+	global action
 	action = 2
+	global round
 	players[num]._cards = []
 	hands[i] = []
+	classifier.train(action, rank, round)
 	players[num]._move="folded"
 
 def bot_fold(i):
@@ -230,8 +242,11 @@ board_rank = pokerbot.board_rank(flopCards, 1)
 bot_move(action, 2, board_rank)
 # Update the hands of the players with the flop cards
 for i in range(0, numplayers):
-    players[i]._cards += flopCards
-    hands[i] = players[i]._cards
+	try:
+		players[i]._cards += flopCards
+		hands[i] = players[i]._cards
+	except:
+		pass
 
 #if __name__ == '__main__':
 	#game()
