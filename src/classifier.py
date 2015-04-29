@@ -2,7 +2,6 @@ import sqlite3
 import functools
 import math
 from decimal import *
-from player import Player
 from models import *
 
 # when instantiating pass in the player object to be classified

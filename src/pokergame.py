@@ -2,7 +2,7 @@ import random
 import time
 import sys
 from collections import OrderedDict
-from player import GamePlayer
+from player import Bot
 from player import Player
 from classifier import Classifier
 from poker import Poker
@@ -11,9 +11,9 @@ class Pokergame:
 	def setup (self):
 		self.numplayers = 5
 		self.player = Player(input("Enter your name: \n"))
-		self.players = [GamePlayer() for i in range(0, self.numplayers-1)]
+		self.players = [Bot(i) for i in range(0, self.numplayers-1)]
 		self.players.insert(0, self.player)
-		self.classifier = Classifier(self.player)
+		self.poker = Poker()
 		self.predicted_hand = 9
 		self.action = 1
 		self.minimumbet = 0
@@ -21,7 +21,7 @@ class Pokergame:
 		self.small_blind = 2
 		self.big_blind = 1
 		self.go_first = 0
-		self.player_bet = 0
+		self.board_rank = 8
 		self.communityCards = 3
 		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
 		self.round = self.get_next_round()
@@ -37,14 +37,15 @@ class Pokergame:
 			sys.stdout.write("\rDealing hole cards....")
 			time.sleep(.3)
 			sys.stdout.write("\rDealing hole cards.....")
-			hands = poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
+			hands = self.poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
 
 		for i in range(0, self.numplayers):
 	   		self.players[i]._cards = hands[i]
 
-		flopCards = [hands[7][0]] + hands[6]
-		turnCards = [hands[7][1]]
-		riverCards = [hands[8][0]]
+		self.flopCards = [hands[7][0]] + hands[6]
+		self.turnCards = [hands[7][1]]
+		self.riverCards = [hands[8][0]]
+		self.board = self.flopCards
 
 		# Displays User's Balance and Hand
 		print("\n\nYour initial balance: ")
@@ -100,9 +101,32 @@ class Pokergame:
 			print('{}) {}'.format(key, value.__doc__))
 		choice = input("\nWhat would you like to do?\n").strip()
 		try:
-			menu[choice](round_id, poker, game)
+			action, self.minimumbet, self.pot = menu[choice](round_id, self.minimumbet, self.pot)
 		except:
 			print("That is not a valid choice. Try again")
+			time.sleep(1)
+			self.menu_loop()
+		print("Your balance is now $" + str(self.player._money) +".\n")
+		time.sleep(1)
+		self.bot_turns(action)
+
+	def bot_turns(self, action):
+		round_id, round = self.round
+		board_rank = self.poker.board_rank(self.board, round_id-1)
+		predicted_hand = self.player.classifier.predict(action, round_id, board_rank)
+		for bot in self.players:
+			rank = self.poker.hole_rank(bot._cards)
+			bluff = random.randint(1, 10)
+			play_safe = random.randint(1, 10)
+			if (bot == self.player):
+				pass
+			else:
+				if (rank < predicted_hand or bluff > bot.bluff_factor):
+					self.minimumbet, self.pot = bot.raised(self.minimumbet, self.pot)
+				elif (rank == predicted_hand or play_safe > bot.passive_factor):
+					self.minimumbet, self.pot = bot.call(self.minimumbet, self.pot)
+				else:
+					self.minimumbet, self.pot = bot.fold(self.minimumbet, self.pot)
 
 	def __init__(self):
 		self.setup()
@@ -123,19 +147,4 @@ class Pokergame:
 			self.go_first += 1
 		return 	big_blind, small_blind
 
-
-
-	def bots_turns(self):
-		predicted_hand = classifier.predict(action, round, board_rank)
-		for bot in players:
-			i = players.index(bot)
-		if (bot == player):
-			continue
-		else:
-			bot.move()
-
-	def player_turn(self):
-
-
-poker = Poker()
 game = Pokergame()

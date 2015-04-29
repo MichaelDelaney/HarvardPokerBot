@@ -270,3 +270,4 @@ class Poker:
 	    assert self.straight([9, 8, 7, 6, 5]) == True
 	    assert self.flush(fk) == False
 	    return 'tests pass'
+

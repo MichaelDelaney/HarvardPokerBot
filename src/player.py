@@ -1,6 +1,9 @@
 import sqlite3
 import random
+import time
 from models import *
+from poker import Poker
+from classifier import Classifier
 
 class GamePlayer(object):
 
@@ -8,7 +11,8 @@ class GamePlayer(object):
 	_cards = []
 	_money = 500000
 	_move = " "
-	bet = 0
+	_bet = 0
+	poker = Poker()
 	
 
 class Player (GamePlayer):
@@ -21,102 +25,97 @@ class Player (GamePlayer):
 		self.name = name
 		player = Players.select().where(Players.name == self.name).get()
 		self.id = player.id
+		self.classifier = Classifier(self)
 
-	def checked(self, round, poker, game):
+	def checked(self, round, minbet, pot):
 		"""check"""
 		action = 5
-		rank = poker.hole_rank(self._cards)
-		classifier.train(action, rank, round)
+		rank = self.poker.hole_rank(self._cards)
+		self.classifier.train(action, rank, round)
 		self._move = "checked"
+		return (action, minbet, pot)
 
-	def called(self, round, poker, game):
+	def called(self, round, minbet, pot):
 		"""call""" 
 		action = 3
-		rank = pokerbot.hole_rank(self._cards)
-		classifier.train(action, rank, round)
-		round_bet = minimumbet
-		self._money -= game.minimumbet
-		game.pot += minbet
+		rank = self.poker.hole_rank(self._cards)
+		self.classifier.train(action, rank, round)
+		round_bet = minbet
+		self._money -= minbet
+		pot += minbet
 		self._move = "called"
+		return (action, minbet, pot)
 
-	def bet(self, round, poker, game):
+	def bet(self, round, minbet, pot):
 		"""bet"""
 		action = 4
 		round_bet = int(input("\nHow much would you like to bet?\n").strip())
-		self.bet += round_bet
-		self._money -= (game.minimumbet + round_bet)
-		rank = pokerbot.hole_rank(self._cards)
-		classifier.train(action, rank, round)
-		game.pot += (game.minimumbet + round_bet)
+		self._bet += round_bet
+		self._money -= (minbet + round_bet)
+		minbet += round_bet
+		rank = self.poker.hole_rank(self._cards)
+		self.classifier.train(action, rank, round)
+		pot += (minbet + round_bet)
 		self._move = "bet"
+		return (action, minbet, pot)
 
-	def raised(self, round, poker, game):
+	def raised(self, round, minbet, pot):
 		"""raise"""
-		action = 4
+		action = 1
 		round_bet = int(input("\nHow much would you like to bet?\n").strip())
-		self.bet += round_bet
-		self._money -= (game.minimumbet + round_bet)
-		rank = pokerbot.hole_rank(self._cards)
-		classifier.train(action, rank, round)
-		game.pot += (game.minimumbet + round_bet)
+		self._bet += round_bet
+		self._money -= (minbet + round_bet)
+		minbet += round_bet
+		rank = self.poker.hole_rank(self._cards)
+		self.classifier.train(action, rank, round)
+		pot += (minbet + round_bet)
 		self._move = "raised"
+		return (action, minbet, pot)
 
-	def folded(self, round, poker, game):
+	def folded(self, round, minbet, pot):
 		"""fold"""
 		action = 2
 		self._cards = []
 		#game.hands[i] = []
-		rank = pokerbot.hole_rank(self._cards)
-		classifier.train(action, rank, round)
+		rank = self.poker.hole_rank(self._cards)
+		self.classifier.train(action, rank, round)
 		self._move = "folded"
+		return (action, minbet, pot)
 
 
 class Bot(GamePlayer):
 
-	def __init__(self):
-		bluff_factor = random.randint(1, 4)
-		passive_factor = random.randint(1, 4)
+	def __init__(self, i):
+		self.bluff_factor = random.randint(6, 10)
+		self.passive_factor = random.randint(6, 10)
+		self.index = i
 
-	def call(self, i):
-		global minimumbet
-		players[i]._money -= minimumbet
-		global pot
-		pot += minimumbet
-		time.sleep(1)
-		print('Player {} called'.format(i + 1))
-		print('The minimum bet is now {}'.format(minimumbet))
+	def call(self, minbet, pot):
+		round_bet = minbet
+		self._money -= minbet
+		pot += minbet
+		self._move = "called"
+		time.sleep(2)
+		print('\nPlayer {} called'.format(self.index + 1))
+		print('The minimum bet is now {}'.format(minbet))
+		return (minbet, pot)
 
-	def raised(self, i):
-		bet = random.randint(1, 50)
-		global minimumbet
-		players[i]._money -= (minimumbet + bet)
-		global pot
-		pot += (minimumbet + bet)
-		minimumbet += bet
-		time.sleep(1)
-		print('Player {} raised {}'.format(i + 1, bet))
-		print('The minimum bet is now {}'.format(minimumbet))
+	def raised(self, minbet, pot):
+		round_bet = random.randint(1, 50)
+		self._bet += round_bet
+		self._money -= (minbet + round_bet)
+		minbet += round_bet
+		pot += (minbet + round_bet)
+		self._move = "raised"
+		time.sleep(2)
+		print('\nPlayer {} raised {}'.format(self.index + 1, round_bet))
+		print('The minimum bet is now {}'.format(minbet))
+		return (minbet, pot)
 
-	def fold(self, i):
-		players[i]._cards = []
-		hands[i] = []
-		players[i]._move = "folded"
-		time.sleep(1)
-		print('Player {} folded'.format(i + 1))
-
-	def move(action, round, board_rank=8):
-		global predicted_hand
-		predicted_hand = classifier.predict(action, round, board_rank)
-		for bot in players:
-			i = players.index(bot)
-			if (bot == player):
-				continue
-			rank = pokerbot.hole_rank(bot._cards)
-			bluff = random.randint(1, 10)
-			play_safe = random.randint(1, 10)
-			if (rank < predicted_hand or bluff > 6):
-				bot_raise(i)
-			elif (rank == predicted_hand or play_safe > 6):
-				bot_call(i)
-			else:
-				bot_fold(i)
+	def fold(self, minbet, pot):
+		self._cards = []
+		#game.hands[i] = []
+		self._move = "folded"
+		time.sleep(2)
+		print('Player {} folded'.format(self.index + 1))
+		return (minbet, pot)
