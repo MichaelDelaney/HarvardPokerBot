@@ -264,9 +264,9 @@ def test():
     ah = "AS 2S 3S 4S 6C".split() # A high
     sh = "2S 3S 4S 6C 7D".split() # 7 high
     assert poker([sf, fk, fh]) == [sf]
-    assert card_ranks(sf) == [10, 9, 8, 7, 6]
     assert kind(4, fkranks) == 9
     assert two_pair([10, 10, 5, 5, 2]) == (10, 5)
     assert straight([9, 8, 7, 6, 5]) == True
     assert flush(fk) == False
     return 'tests pass'
+    

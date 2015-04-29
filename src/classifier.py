@@ -162,7 +162,3 @@ class Classifier:
 #        for hypothesis in xrange(0,101):
 #            possibility = possibilities[hypothesis]
 #            possibilities[hypothesis] = possibility/possibility_sum
-
-bry = Player('bry')
-c = Classifier(bry)
-print(c.predict(1, 1))
