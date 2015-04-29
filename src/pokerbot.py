@@ -66,18 +66,21 @@ def card_ranks(hand):
 	ranks.sort(reverse=True)
 	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks 
 
-def suitedness(hand):
+def sequence(cards, num):
+	ranks = card_ranks(cards)
+	return (max(ranks)-min(ranks) == 4) and len(set(ranks)) == num
+
+
+def suitedness(hand, dups):
 	suits = []
 	for card in hand:
 		parts = list(card)
 		suits.append(parts[1])
-	return len(set(suits)) <= 1
-		
-
+	return len(set(suits)) <= dups
 
 def hole_rank(hand):
 	ranks = card_ranks(hand)
-	suited = suitedness(hand)
+	suited = suitedness(hand, 1)
 	if (ranks == [14, 14] or 
 		ranks == [13, 13] or 
 		ranks == [12, 12] or 
@@ -125,15 +128,15 @@ def hole_rank(hand):
 		ranks == [14, 8] and suited or
 		ranks == [14, 9] and suited):
 		return 5
-	elif (ranks == [6, 6] or 
+	elif (ranks == [6, 6] or
 		ranks == [14, 10] or 
 		ranks == [5, 5] or 
-		ranks == [8, 6] and suited or 
-		ranks == [13, 10] or 
+		ranks == [8, 6] and suited or
+		ranks == [13, 10] or
 		ranks == [12, 10] or
-		ranks == [5, 4] and suited or 
-		ranks == [13, 9] and suited or 
-		ranks == [11, 8] and suited or 
+		ranks == [5, 4] and suited or
+		ranks == [13, 9] and suited or
+		ranks == [11, 8] and suited or
 		ranks == [7, 5] and suited):
 		return 6
 	elif(ranks == [4, 4] or 
@@ -173,6 +176,23 @@ def hole_rank(hand):
 		return 8
 	else:
 		return 9
+
+def board_rank(cards, extras):
+	rank, s = hand_rank(cards)
+	if(rank == 3):
+		return 1
+	elif(sequence(cards, extras)):
+		return 2
+	elif(suitedness(cards, 1)):
+		return 3
+	elif(rank == 2):
+		return 4
+	elif(sequence(cards, extras+1)):
+		return 5
+	elif(suitedness(cards, 2)):
+		return 6
+	else:
+		return 7
 
 # RANKS
 # Straight: 5-card straight

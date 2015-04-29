@@ -1,11 +1,15 @@
 import sqlite3
+import random
 from models import *
 
 class GamePlayer(object):
-    _name = ""
-    _cards = []
-    _money = 500000
-    _move = " "
+	def __init__(self):
+		self._name = " "
+		self._cards = []
+		self._money = 500000
+		self._move = " "
+		self.bluff_factor = random.randint(1, 4)
+		self.passive_factor = random.randint(1, 4)
 
 class Player (GamePlayer):
 

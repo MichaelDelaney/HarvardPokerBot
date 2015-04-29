@@ -20,6 +20,8 @@ minimumbet = 0
 pot = 0
 small_blind = 0
 big_blind = 1
+player_bet = 0
+communityCards = 3
 
 def menu_loop():
 	"""show the menu"""
@@ -40,6 +42,8 @@ def called(num):
 	global action 
 	action = 3
 	global minimumbet
+	global player_bet
+	player_bet= minimumbet
 	players[num]._money -= minimumbet
 	global pot
 	pot += minimumbet
@@ -49,31 +53,35 @@ def bot_call(i):
 	players[i]._money -= minimumbet
 	global pot
 	pot += minimumbet
+	time.sleep(1)
 	print('Player {} called'.format(i + 1))
+	print('The minimum bet is now {}'.format(minimumbet))
 
 def bet(num):
 	"""bet"""
 	global action 
 	action = 4
-	bet = int(input("\nHow much would you like to bet?\n").strip())
+	global bet
+	round_bet = int(input("\nHow much would you like to bet?\n").strip())
+	player_bet += round_bet
 	global minimumbet
 	players[num]._money -= (minimumbet + bet)
 	global pot
-	pot += (minimumbet + bet)
+	pot += (minimumbet + round_bet)
 
 # Raise - Double the minimum bet
 def raised(num):
 	"""raise"""
 	global action
 	action = 1
-	print("action: ")
-	print(action)
-	bet = int(input("\nHow much would you like to bet?\n").strip())
+	global player_bet
+	round_bet = int(input("\nHow much would you like to bet?\n").strip())
+	player_bet += round_bet
 	global minimumbet
-	players[num]._money -= (minimumbet + bet)
+	players[num]._money -= (minimumbet + round_bet)
 	global pot
-	pot += (minimumbet + bet)
-	minimumbet += bet
+	pot += (minimumbet + round_bet)
+	minimumbet += round_bet
 
 def bot_raise(i):
 	bet = random.randint(1, 50)
@@ -82,6 +90,7 @@ def bot_raise(i):
 	global pot
 	pot += (minimumbet + bet)
 	minimumbet += bet
+	time.sleep(1)
 	print('Player {} raised {}'.format(i + 1, bet))
 	print('The minimum bet is now {}'.format(minimumbet))
 
@@ -98,6 +107,7 @@ def bot_fold(i):
 	players[i]._cards = []
 	hands[i] = []
 	del players[i]
+	time.sleep(1)
 	print('Player {} folded'.format(i + 1))
 
 def rotate_blinds(big_blind, small_blind):
@@ -160,10 +170,14 @@ else:
 	    sys.stdout.write("\rDealing hole cards....")
 	    time.sleep(.3)
 	    sys.stdout.write("\rDealing hole cards.....")
-	hands = pokerbot.deal(numplayers+1) #Added 1 for dealer's hand, he will be hands[5]
+	hands = pokerbot.deal(numplayers+1+communityCards) #Added 1 for dealer's hand, he will be hands[5]
 
 	for i in range(0, numplayers):
-	    players[i]._cards = hands[i]
+   		players[i]._cards = hands[i]
+
+	flopCards = [hands[7][0]] + hands[6]
+	turnCards = [hands[7][1]]
+	riverCards = [hands[8][0]]
 
 	# Displays User's Balance and Hand
 	print("\n\nYour initial balance: ")
@@ -174,24 +188,50 @@ else:
 	# BDIESPLAYOFABOVE: print(hands[0][0]+ ", " + hands[0][1])
 
 	# Request User to make the first bet, then display the user's balance again.
-
+def announce_round(round):
+	global minimumbet
 	print("\nthe min bet is {}\n".format(minimumbet))
 	if (small_blind == 0):
 		players[0]._money -= 1 
 		minimumbet = 1
-		print("\nPre-flop round!\nYou are the small blind. Your balance is now {}\n".format(str(players[0]._money)))
+		print("\n{}!\nYou are the small blind. Your balance is now {}\n".format(round, str(players[0]._money)))
 	elif (big_blind == 0):
 		players[0]._money -= 2
-		print("\nPre-flop round!\nYou are the big blind. Your balance is now {}\n".format(str(players[0]._money)))
+		print("\n{}!\nYou are the big blind. Your balance is now {}\n".format(round, str(players[0]._money)))
 	else:
 		minimumbet = 2
-		print("\nPre-flop round!\n")
+		print("\n{}!\n".format(round))
 
-	choice = menu_loop()
-	print("Your balance is now $" + str(players[0]._money) +".\n")
-	time.sleep(1)
+announce_round("Pre-flop round")
 
-	bot_move(action, 1)
+choice = menu_loop()
+print("Your balance is now $" + str(players[0]._money) +".\n")
+time.sleep(1)
+
+bot_move(action, 1)
+big_blind, small_blind = rotate_blinds(big_blind, small_blind)
+
+
+#####################
+# Reveal Flop Cards
+#####################
+# Flop - Dealer shows 3 Community Cards
+print("The flops cards are...")
+print(flopCards)
+time.sleep(2)
+
+announce_round("flop round")
+choice = menu_loop()
+
+print("Your balance is now $" + str(players[0]._money) +".\n")
+time.sleep(1)
+
+board_rank = pokerbot.board_rank(flopCards, 1)
+bot_move(action, 2, board_rank)
+# Update the hands of the players with the flop cards
+for i in range(0, numplayers):
+    players[i]._cards += flopCards
+    hands[i] = players[i]._cards
 
 #if __name__ == '__main__':
 	#game()
