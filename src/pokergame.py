@@ -107,9 +107,6 @@ class Pokergame:
 	def __init__(self):
 		self.setup()
 
-poker = Poker()
-game = Pokergame()
-
 
 	def rotate_blinds(self):
 		if (self.big_blind == self.numplayers-1):
@@ -138,3 +135,7 @@ game = Pokergame()
 			bot.move()
 
 	def player_turn(self):
+
+
+poker = Poker()
+game = Pokergame()
