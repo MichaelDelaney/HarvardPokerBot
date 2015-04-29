@@ -128,7 +128,7 @@ class Classifier:
 				max_prob = value
 				max_rank = rank
 			else:
-				continue
+				pass
 		if (max_rank == 0):
 			return 9
 		else:
@@ -162,3 +162,7 @@ class Classifier:
 #        for hypothesis in xrange(0,101):
 #            possibility = possibilities[hypothesis]
 #            possibilities[hypothesis] = possibility/possibility_sum
+
+bry = Player('test_player')
+c = Classifier(bry)
+print(c.predict(1, 1))

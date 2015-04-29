@@ -2,11 +2,10 @@ import sqlite3
 from models import *
 
 class GamePlayer(object):
-    def __init__( self ):
-        self._name = ""
-        self._cards = []
-        self._money = 500000
-        self._move = " "
+    _name = ""
+    _cards = []
+    _money = 500000
+    _move = " "
 
 class Player (GamePlayer):
 

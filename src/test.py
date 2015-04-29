@@ -49,6 +49,7 @@ def bot_call(i):
 	players[i]._money -= minimumbet
 	global pot
 	pot += minimumbet
+	print('Player {} called'.format(i + 1))
 
 def bet(num):
 	"""bet"""
@@ -63,8 +64,10 @@ def bet(num):
 # Raise - Double the minimum bet
 def raised(num):
 	"""raise"""
-	global action 
+	global action
 	action = 1
+	print("action: ")
+	print(action)
 	bet = int(input("\nHow much would you like to bet?\n").strip())
 	global minimumbet
 	players[num]._money -= (minimumbet + bet)
@@ -73,12 +76,14 @@ def raised(num):
 	minimumbet += bet
 
 def bot_raise(i):
-	bet = Random.randint(1, 50)
+	bet = random.randint(1, 50)
 	global minimumbet
 	players[i]._money -= (minimumbet + bet)
 	global pot
 	pot += (minimumbet + bet)
 	minimumbet += bet
+	print('Player {} raised {}'.format(i + 1, bet))
+	print('The minimum bet is now {}'.format(minimumbet))
 
 # Quit round - The player loses the money they invested
 def folded(num):
@@ -93,6 +98,7 @@ def bot_fold(i):
 	players[i]._cards = []
 	hands[i] = []
 	del players[i]
+	print('Player {} folded'.format(i + 1))
 
 def rotate_blinds(big_blind, small_blind):
 	if (big_blind == 4):
@@ -107,18 +113,25 @@ def rotate_blinds(big_blind, small_blind):
 
 	return 	big_blind, small_blind
 
+
 def bot_move(action, round, board_rank=8):
 	global predicted_hand
 	predicted_hand = classifier.predict(action, round, board_rank)
-	for i in range(1, 5):
-		rank = pokerbot.hole_rank(list(Player[i]._cards)
-		if (rank > predicted_hand):
+	for bot in players:
+		i = players.index(bot)
+		if (bot == player):
+			continue
+		rank = pokerbot.hole_rank(bot._cards)
+		bluff = random.randint(1, 10)
+		play_safe = random.randint(1, 10)
+		if (rank < predicted_hand or bluff > 6):
 			bot_raise(i)
-		elif (rank == predicted_hand):
+		elif (rank == predicted_hand or play_safe > 6):
 			bot_call(i)
 		else:
 			bot_fold(i)
-
+# the fist person to raise the minimum bet above big blind = bet
+# anyone who raises after that = raise
 if (minimumbet == bet):
 	menu = OrderedDict ([
 		("1", checked),
@@ -174,7 +187,7 @@ else:
 		minimumbet = 2
 		print("\nPre-flop round!\n")
 
-	action = menu_loop()
+	choice = menu_loop()
 	print("Your balance is now $" + str(players[0]._money) +".\n")
 	time.sleep(1)
 
