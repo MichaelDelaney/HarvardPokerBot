@@ -66,23 +66,114 @@ def card_ranks(hand):
 	ranks.sort(reverse=True)
 	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks 
 
-def suited(hand):
+def suitedness(hand):
 	suits = []
 	for card in hand:
 		parts = list(card)
 		suits.append(parts[1])
-	return len(set(iterator)) <= 1
+	return len(set(suits)) <= 1
 		
 
 
-def hole_ranks(hand):
+def hole_rank(hand):
 	ranks = card_ranks(hand)
-	if (ranks == [14, 14] or [13, 13] or [12, 12] or [11, 11] or ([14, 13] and suited(hand))):
+	suited = suitedness(hand)
+	if (ranks == [14, 14] or 
+		ranks == [13, 13] or 
+		ranks == [12, 12] or 
+		ranks == [11, 11] or 
+		ranks == [14, 13] and suited):
 		return 1
+	elif (ranks == [10, 10] or 
+		ranks == [14, 12] and suited or 
+		ranks == [14, 11] and suited or 
+		ranks == [13, 12] and suited or 
+		ranks == [14, 13]):
+		return 2
+	elif (ranks == [9, 9] or 
+		ranks == [11, 10] and suited or 
+		ranks == [12, 11] and suited or 
+		ranks == [13, 11] and suited or 
+		ranks == [14, 10] and suited or 
+		ranks == [14, 12]):
+		return 3
+	elif (ranks == [10, 9] and suited or 
+		ranks == [14, 13] or
+		ranks == [8, 8] or 
+		ranks == [12, 10] and suited or 
+		ranks == [9, 8] and suited or 
+		ranks == [11, 9] and suited or 
+		ranks == [14, 11] or 
+		ranks == [13, 10] and suited):
+		return 4
+	elif (ranks == [7, 7] or 
+		ranks == [8, 7] and suited or 
+		ranks == [12, 9] and suited or 
+		ranks == [10, 8] and suited or 
+		ranks == [13, 11] or 
+		ranks == [12 ,11] or 
+		ranks == [11, 10] or 
+		ranks == [7, 6] and suited or 
+		ranks == [9, 7] and suited or
+		ranks == [6, 5] and suited or 
+		ranks == [14, 2] and suited or
+		ranks == [14, 3] and suited or
+		ranks == [14, 4] and suited or
+		ranks == [14, 5] and suited or
+		ranks == [14, 6] and suited or
+		ranks == [14, 7] and suited or
+		ranks == [14, 8] and suited or
+		ranks == [14, 9] and suited):
+		return 5
+	elif (ranks == [6, 6] or 
+		ranks == [14, 10] or 
+		ranks == [5, 5] or 
+		ranks == [8, 6] and suited or 
+		ranks == [13, 10] or 
+		ranks == [12, 10] or
+		ranks == [5, 4] and suited or 
+		ranks == [13, 9] and suited or 
+		ranks == [11, 8] and suited or 
+		ranks == [7, 5] and suited):
+		return 6
+	elif(ranks == [4, 4] or 
+		ranks == [11, 9] or 
+		ranks == [6, 4] and suited or 
+		ranks == [10, 9] or 
+		ranks == [5, 3] and suited or
+		ranks == [3, 3] or ranks == [9, 8] or 
+		ranks == [4, 3] and suited or 
+		ranks == [2, 2] or 
+		ranks == [10, 7] and suited or
+		ranks == [12, 8] and suited or 
+		ranks == [13, 2] and suited or
+		ranks == [13, 3] and suited or
+		ranks == [13, 4] and suited or
+		ranks == [13, 5] and suited or
+		ranks == [13, 6] and suited or
+		ranks == [13, 7] and suited or
+		ranks == [13, 8] and suited or
+		ranks == [13, 9] and suited):
+		return 7
+	elif (ranks == [8, 7] or 
+		ranks == [14, 9] or 
+		ranks == [12, 9] or 
+		ranks == [7, 6] or 
+		ranks == [4, 2] and suited or
+		ranks == [3, 2] and suited or 
+		ranks == [9, 6] and suited or 
+		ranks == [8, 5] and suited or 
+		ranks == [11, 8] or
+		ranks == [11, 7] and suited or 
+		ranks == [6, 5] or 
+		ranks == [5, 4] or 
+		ranks == [7, 4] and suited or 
+		ranks == [13, 9] or 
+		ranks == [10, 8]):
+		return 8
 	else:
 		return 9
 
-print(hole_ranks(['AD', 'AH']))
 # RANKS
 # Straight: 5-card straight
 # Flush: all cards are the same suit 
@@ -120,6 +211,16 @@ deck = [r+s for r in '23456789TJQKA' for s in 'SHDC']
 def deal(numhands, n=2, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
 	random.shuffle(deck) #deck randomizer
 	return [deck[n*i:n*(i+1)] for i in range(numhands)]
+
+# Flop
+def flop(flophands, n=3, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
+	random.shuffle(deck) #deck randomizer
+	return [deck[n*i:n*(i+1)] for i in range(flophands)]
+
+# Turn
+def turn(turncard, n=1, deck=[r+s for r in '23456789TJQKA' for s in 'SHDC']):
+	random.shuffle(deck) #deck randomizer
+	return [deck[n*i:n*(i+1)] for i in range(turncard)]
 
 # Need functionality to handle hand larger than 5 cards
 def best_hand(hand):

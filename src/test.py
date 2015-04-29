@@ -44,6 +44,12 @@ def called(num):
 	global pot
 	pot += minimumbet
 
+def bot_call(i):
+	global minimumbet
+	players[i]._money -= minimumbet
+	global pot
+	pot += minimumbet
+
 def bet(num):
 	"""bet"""
 	global action 
@@ -66,6 +72,14 @@ def raised(num):
 	pot += (minimumbet + bet)
 	minimumbet += bet
 
+def bot_raise(i):
+	bet = Random.randint(1, 50)
+	global minimumbet
+	players[i]._money -= (minimumbet + bet)
+	global pot
+	pot += (minimumbet + bet)
+	minimumbet += bet
+
 # Quit round - The player loses the money they invested
 def folded(num):
 	"""fold"""
@@ -75,8 +89,11 @@ def folded(num):
 	hands[i] = []
 	players[num]._move="folded"
 
+def bot_fold(i):
+	players[i]._cards = []
+	hands[i] = []
+	del players[i]
 
- 
 def rotate_blinds(big_blind, small_blind):
 	if (big_blind == 4):
 		big_blind = 0
@@ -93,6 +110,14 @@ def rotate_blinds(big_blind, small_blind):
 def bot_move(action, round, board_rank=8):
 	global predicted_hand
 	predicted_hand = classifier.predict(action, round, board_rank)
+	for i in range(1, 5):
+		rank = pokerbot.hole_rank(list(Player[i]._cards)
+		if (rank > predicted_hand):
+			bot_raise(i)
+		elif (rank == predicted_hand):
+			bot_call(i)
+		else:
+			bot_fold(i)
 
 if (minimumbet == bet):
 	menu = OrderedDict ([
