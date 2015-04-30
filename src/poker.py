@@ -66,10 +66,17 @@ class Poker:
 		ranks.sort(reverse=True)
 		return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks
 
-	def sequence(self, cards, num):
+	def sequence(self, cards):
 		ranks = self.card_ranks(cards)
-		return (max(ranks)-min(ranks) == 4) and len(set(ranks)) == num
-
+		prev = 0
+		i = 1
+		for rank in ranks:
+			if prev - 1 == rank:
+				prev = rank
+				i += 1
+			else:
+				prev = rank
+		return i
 
 	def suitedness(self, hand, dups):
 		suits = []
@@ -181,13 +188,13 @@ class Poker:
 		rank, s = self.hand_rank(cards)
 		if(rank == 3):
 			return 1
-		elif(self.sequence(cards, extras)):
+		elif(self.sequence(cards) == 3):
 			return 2
 		elif(self.suitedness(cards, 1)):
 			return 3
 		elif(rank == 2):
 			return 4
-		elif(self.sequence(cards, extras+1)):
+		elif(self.sequence(cards) == 2):
 			return 5
 		elif(self.suitedness(cards, 2)):
 			return 6

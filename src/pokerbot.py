@@ -43,13 +43,13 @@ def hand_rank(hand):
 	flush = len(set([s for r,s in hand])) == 1
 	return (9 if (5,) == counts else
 		8 if straight and flush else
-		7 if (4, 1) == counts else
+		7 if (4, 1) == counts or (4,) == counts else
 		6 if (3, 2) == counts else
 		5 if flush else
 		4 if straight else
-		3 if (3, 1, 1) == counts else
-		2 if (2, 2, 1) == counts else
-		1 if (2, 1, 1, 1) == counts else
+		3 if (3, 1, 1) == counts or (3, 1) == counts or (3,) == counts else
+		2 if (2, 2, 1) == counts or (2, 2) == counts else
+		1 if (2, 1, 1, 1) == counts or (2, 1, 1) == counts or (2, 1) == counts else
 		0), ranks
 
 # Hand_rank helper functions
@@ -66,10 +66,17 @@ def card_ranks(hand):
 	ranks.sort(reverse=True)
 	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks 
 
-def sequence(cards, num):
+def sequence(cards):
 	ranks = card_ranks(cards)
-	return (max(ranks)-min(ranks) == 4) and len(set(ranks)) == num
-
+	prev = 0
+	i = 1
+	for rank in ranks:
+		if prev - 1 == rank:
+			prev = rank
+			i += 1
+		else:
+			prev = rank
+	return i
 
 def suitedness(hand, dups):
 	suits = []
@@ -181,19 +188,19 @@ def board_rank(cards, extras):
 	rank, s = hand_rank(cards)
 	if(rank == 3):
 		return 1
-	elif(sequence(cards, extras)):
+	elif(sequence(cards) == 3):
 		return 2
 	elif(suitedness(cards, 1)):
 		return 3
 	elif(rank == 2):
 		return 4
-	elif(sequence(cards, extras+1)):
+	elif(sequence(cards) == 2):
 		return 5
 	elif(suitedness(cards, 2)):
 		return 6
 	else:
 		return 7
-
+print(board_rank(['5D', '6S', '9D'], 1))
 # RANKS
 # Straight: 5-card straight
 # Flush: all cards are the same suit 
@@ -269,4 +276,3 @@ def test():
     assert straight([9, 8, 7, 6, 5]) == True
     assert flush(fk) == False
     return 'tests pass'
-    
