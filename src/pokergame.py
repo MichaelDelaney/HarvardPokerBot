@@ -9,6 +9,15 @@ from poker import Poker
 
 class Pokergame:
 	def setup (self):
+		self.minimumbet = 0
+		self.pot = 0
+		self.board_rank = 8
+		self.communityCards = 3
+		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
+		self.deal_cards()
+		self.round = self.get_next_round()
+
+	def setup_starting_hand(self):
 		# Game Title and Welcome
 		print("\n *** Harvard Hold'em Poker Bot *** \n")
 		print("Welcome. Let's get the game started...")
@@ -17,32 +26,18 @@ class Pokergame:
 		self.players = [Bot(i) for i in range(0, self.numplayers-1)]
 		self.players.insert(0, self.player)
 		self.poker = Poker()
-		self.predicted_hand = 9
-		self.action = 1
-		self.minimumbet = 0
-		self.pot = 0
 		self.small_blind = 2
 		self.big_blind = 1
 		self.go_first = 0
-		self.board_rank = 8
-		self.communityCards = 3
-		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
-		self.deal_cards()
-		self.round = self.get_next_round()
-		
+		self.setup()
 
 	def setup_next_hand (self, players_still_in):
-		print("You're still in! You now have ${}".format(str(self.player._money)))
+		print("\n\nYou're still in! You now have ${}".format(str(self.player._money)))
 		print("Let's get the next hand started...")
 		self.numplayers = len(players_still_in)
 		self.players = players_still_in
-		self.minimumbet = 0
-		self.pot = 0
-		self.board_rank = 8
-		self.communityCards = 3
-		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
-		self.deal_cards()
-		self.round = self.get_next_round()
+		self.player._move = ""
+		self.setup()
 
 	def get_next_round(self):
 		try:
@@ -53,7 +48,6 @@ class Pokergame:
 
 	def deal_cards(self):
 		self.hands = self.poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
-		print(self.hands)
 		for i in range(0, self.numplayers):
 			self.players[i]._cards = self.hands[i]
 
@@ -75,7 +69,10 @@ class Pokergame:
 		else:
 			self.minimumbet = 2
 			print("\n{}!\n".format(round))
-		self.menu_loop()
+		if(self.player._move == "folded"):
+			self.bot_turns(2)
+		else:
+			self.menu_loop()
 
 	def get_menu (self):
 		if (self.minimumbet == self.player.bet):
@@ -287,7 +284,7 @@ class Pokergame:
 				self.setup_next_hand(players_still_in)
 
 	def __init__(self):
-		self.setup()
+		self.setup_starting_hand()
 
 
 game = Pokergame()
