@@ -9,6 +9,9 @@ from poker import Poker
 
 class Pokergame:
 	def setup (self):
+		# Game Title and Welcome
+		print("\n *** Harvard Hold'em Poker Bot *** \n")
+		print("Welcome. Let's get the game started...")
 		self.numplayers = 5
 		self.player = Player(input("Enter your name: \n"))
 		self.players = [Bot(i) for i in range(0, self.numplayers-1)]
@@ -24,6 +27,21 @@ class Pokergame:
 		self.board_rank = 8
 		self.communityCards = 3
 		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
+		self.deal_cards()
+		self.round = self.get_next_round()
+		
+
+	def setup_next_hand (self, players_still_in):
+		print("You're still in! You now have ${}".format(str(self.player._money)))
+		print("Let's get the next hand started...")
+		self.numplayers = len(players_still_in)
+		self.players = players_still_in
+		self.minimumbet = 0
+		self.pot = 0
+		self.board_rank = 8
+		self.communityCards = 3
+		self.rounds = [(1, "Pre-flop"), (2, "Flop"), (3, "Turn"), (4, "The river")]
+		self.deal_cards()
 		self.round = self.get_next_round()
 
 	def get_next_round(self):
@@ -32,6 +50,17 @@ class Pokergame:
 		except IndexError:
 			self.round = (0, "end of round")
 		self.start_round()
+
+	def deal_cards(self):
+		self.hands = self.poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
+		print(self.hands)
+		for i in range(0, self.numplayers):
+			self.players[i]._cards = self.hands[i]
+
+		self.flopCards = [self.hands[7][0]] + self.hands[6]
+		self.turnCards = [self.hands[7][1]]
+		self.riverCards = [self.hands[8][0]]
+		self.board = self.flopCards
 
 	def announce_round(self):
 		round_id, round = self.round
@@ -130,9 +159,7 @@ class Pokergame:
 	def start_round(self):
 		round_id, round = self.round
 		if (round_id == 1):
-			# Game Title and Welcome
-			print("\n *** Harvard Hold'em Poker Bot *** \n")
-			print("Welcome. Let's get the game started...")
+			
 			# Places 2 Cards in Each Player's Hand
 			for i in range(0, 3):
 				sys.stdout.flush()
@@ -142,20 +169,10 @@ class Pokergame:
 				sys.stdout.write("\rDealing hole cards....")
 				time.sleep(.3)
 				sys.stdout.write("\rDealing hole cards.....")
-				self.hands = self.poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
-
-			for i in range(0, self.numplayers):
-				self.players[i]._cards = self.hands[i]
-
-			self.flopCards = [self.hands[7][0]] + self.hands[6]
-			self.turnCards = [self.hands[7][1]]
-			self.riverCards = [self.hands[8][0]]
-			self.board = self.flopCards
 
 			# Displays User's Balance and Hand
-			print("\n\nYour initial balance: ")
-			self.players[0]._money = 300
-			print("$" + str(self.players[0]._money))
+			print("\n\nYour balance: ")
+			print("$" + str(self.player._money))
 			print("Your hand:")
 			print(self.player._cards)
 			self.announce_round()
@@ -257,8 +274,8 @@ class Pokergame:
 							self.players[i]._money += self.pot
 							print("$" + str(self.pot) + " has been added to Player " + str(i+1) + "'s balance.")
 			players_still_in = []
-			for i in range(1, self.numplayers):
-				if self.player._money > 0:
+			for player in self.players:
+				if player._money > 0:
 					players_still_in.append(self.player)
 				else:
 					pass
@@ -267,7 +284,7 @@ class Pokergame:
 			elif (len(players_still_in) == 1):
 				print("You won the Game. You won{}".format(str(self.player._money)))
 			else:
-				self.setup()
+				self.setup_next_hand(players_still_in)
 
 	def __init__(self):
 		self.setup()

@@ -9,7 +9,7 @@ class GamePlayer(object):
 
 	_name = " "
 	_cards = []
-	_money = 500000
+	_money = 300
 	_move = " "
 	_bet = 0
 	poker = Poker()
