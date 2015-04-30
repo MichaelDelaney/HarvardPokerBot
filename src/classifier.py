@@ -57,9 +57,8 @@ class Classifier:
 		actions = self.get_trained_data(round, board_rank)
 		prob = 0
 		for row in actions:
-			if (row['_data']['action'] == action):
-				if (row['_data']['hand_rank'] == rank):
-					prob = row['_data']['probability'] / self.times_trained(action, round, board_rank)
+			if row['_data']['action'] == action and row['_data']['hand_rank'] == rank:
+				prob = row['_data']['probability'] / self.times_trained(action, round, board_rank)
 		return prob
 
 	def _probabilities_dict (self, action, round, board_rank=8):
