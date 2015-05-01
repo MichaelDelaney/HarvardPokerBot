@@ -48,7 +48,7 @@ class Pokergame:
 		self.start_round()
 
 	def deal_cards(self):
-		self.hands = self.poker.deal(self.numplayers + 1 + self.communityCards) #Added 1 for dealer's hand, he will be hands[5]
+		self.hands = self.poker.deal(self.numplayers + 1 + self.communityCards)
 		for i in range(0, self.numplayers):
 			self.players[i]._cards = self.hands[i]
 
@@ -59,20 +59,23 @@ class Pokergame:
 
 	def announce_round(self):
 		round_id, round = self.round
-		if (self.small_blind == 0):
+		if (self.small_blind == 0 and self.player._money > 1):
 			self.player._money -= 1
 			self.player._bet = 1
-			print("\n{}!\nYou are the small blind. Your balance is now {}\n".format(round, str(self.players[0]._money)))
-		elif (self.big_blind == 0):
+			print("\n{}!\nYou are the small blind. Your balance is now {}\n".format(
+				round, str(self.players[0]._money)))
+		elif (self.big_blind == 0 and self.player._money > 2):
 			self.player._money -= 2
 			self.player._bet = 2
-			print("\n{}!\nYou are the big blind. Your balance is now {}\n".format(round, str(self.player._money)))
+			print("\n{}!\nYou are the big blind. Your balance is now {}\n".format(
+				round, str(self.player._money)))
 		else:
 			print("\n{}!\n".format(round))
 		if(self.player._move == "folded" or self.player._money == 0):
 			self.bot_turns(2)
 		else:
-			print("\nthe minimum bet is {}, you have bet\n".format(self.minimumbet, self.player._bet))
+			print("\nthe minimum bet is {}, you have bet\n".format(
+				self.minimumbet, self.player._bet))
 			self.menu_loop()
 
 	def get_menu (self):
@@ -118,12 +121,13 @@ class Pokergame:
 			rank = self.poker.hole_rank(bot._cards)
 			bluff = random.randint(1, 10)
 			play_safe = random.randint(1, 10)
-			if (bot == self.player or bot._move == "folded" or bot._bet >= self.minimumbet):
+			if (bot == self.player or bot._move == "folded" or bot._bet >= self.minimumbet or 
+				bot._money+2 < self.minimumbet):
 				continue
 			else:
-				if (rank == predicted_hand):
+				if (rank == predicted_hand and play_safe > 1):
 					self.minimumbet, self.pot, out = bot.call(self.minimumbet, self.pot)
-				elif (rank > predicted_hand or play_safe > 5):
+				elif (rank > predicted_hand):
 					self.minimumbet, self.pot, out = bot.fold(self.minimumbet, self.pot)
 				else:
 					self.minimumbet, self.pot, out = bot.raised(self.minimumbet, self.pot)
@@ -144,11 +148,14 @@ class Pokergame:
 				winner._money += self.pot
 				time.sleep(1)
 				print("\nPlayer {} won the round.".format(winner.index))
-				print("{} has been added to player {}'s balance.".format(self.pot, winner.index))
+				print("{} has been added to player {}'s balance.".format(
+					self.pot, winner.index))
 			self.setup_next_hand(self.players)
-		elif self.player._bet < self.minimumbet and self.player._move != "folded" and self.player._money > 0:
+		elif (self.player._bet < self.minimumbet and self.player._move != "folded" and
+			self.player._money > 0):
 			time.sleep(1)
-			print("\nThe minumum bet is now {}, you have bet {}".format(self.minimumbet, self.player._bet))
+			print("\nThe minumum bet is now {}, you have bet {}".format(
+				self.minimumbet, self.player._bet))
 			self.menu_loop()
 		#elif under_min > 1:
 			#self.bot_turns(action)
@@ -331,7 +338,8 @@ class Pokergame:
 						if self.hands[i] == winner:
 							print("\nPlayer " + str(i+1) + " has won.")
 							self.players[i]._money += self.pot
-							print("$" + str(self.pot) + " has been added to Player " + str(i+1) + "'s balance.")
+							print("$" + str(self.pot) + " has been added to Player " + str(
+								i+1) + "'s balance.")
 			players_still_in = []
 			for p in self.players:
 				if p._money > 0:

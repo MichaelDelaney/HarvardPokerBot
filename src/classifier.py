@@ -33,8 +33,11 @@ class Classifier:
 			return Decimal(0.59416)
 
 	def get_trained_data(self, round, board_rank=8):
+		"""get a dict of all the actions and their cooresponding 
+			times trained for the give criteria"""
 		actions = []
-		query = (Probabilities.select(Probabilities.action, Probabilities.hand_rank, Probabilities.probability, Probabilities.board_rank)
+		query = (Probabilities.select(Probabilities.action, Probabilities.hand_rank,
+					Probabilities.probability, Probabilities.board_rank)
 				.join(Players)
 				.where(Players.name == self.player.name)
 				.where(Probabilities.round == round)
@@ -44,8 +47,8 @@ class Classifier:
 			actions.append(row.__dict__)
 		return actions
 
-	# get the number of times this player has been trained for a given action
 	def times_trained (self, action, round, board_rank=8):
+		"""returns the number of times trained for the given criteria"""
 		actions = self.get_trained_data(round, board_rank)
 		total = 0
 		for row in actions:
@@ -54,32 +57,13 @@ class Classifier:
 		return total
 
 	def get_probability(self, action, rank, round, board_rank=8):
+		"""get the probability for use in naive Bayes algorithm"""
 		actions = self.get_trained_data(round, board_rank)
 		prob = 0
 		for row in actions:
 			if row['_data']['action'] == action and row['_data']['hand_rank'] == rank:
 				prob = row['_data']['probability'] / self.times_trained(action, round, board_rank)
 		return prob
-
-	def _probabilities_dict (self, action, round, board_rank=8):
-		ratios = []
-		probabilities={}
-		for rank in range(1, 9):
-			prior_probability = self.prior_probability_rank(rank)
-			prob = self.get_probability(action, rank, round, board_rank)
-			prob_ratio = prior_probability * prob
-			ratios.append(prob_ratio)
-		normalizer = functools.reduce(lambda x, y: x + y, ratios)
-		rank = 1
-		for ratio in ratios:
-			if (normalizer != 0):
-				posterior_probability = ratio/normalizer
-			else:
-				posterior_probability = 0
-			probabilities.update({rank: posterior_probability})
-			rank += 1
-		return probabilities
-
 	
 	def _row_exists(self, action, rank, round, board_rank = 8):
 		rows = []
@@ -99,6 +83,7 @@ class Classifier:
 	# give the action and the rank the player had train the probabilities
 	# and return the new probability of that rank given that action
 	def train (self, action, rank, round, board_rank = 8):
+		"""update the values in the database based on the input criteria"""
 		try:
 			row = (Probabilities.select()
 					.where(Probabilities.action == action)
@@ -117,7 +102,28 @@ class Classifier:
 				probability = 1))
 		return self.get_probability(action, rank, round, board_rank)
 
+	def _probabilities_dict (self, action, round, board_rank=8):
+		"""get a dict of probabilities for each rank using a naive Bayes algorithm"""
+		ratios = []
+		probabilities={}
+		for rank in range(1, 9):
+			prior_probability = self.prior_probability_rank(rank)
+			prob = self.get_probability(action, rank, round, board_rank)
+			prob_ratio = prior_probability * prob
+			ratios.append(prob_ratio)
+		normalizer = functools.reduce(lambda x, y: x + y, ratios)
+		rank = 1
+		for ratio in ratios:
+			if (normalizer != 0):
+				posterior_probability = ratio/normalizer
+			else:
+				posterior_probability = 0
+			probabilities.update({rank: posterior_probability})
+			rank += 1
+		return probabilities
+
 	def predict (self, action, round, board_rank=8):
+		"""get the naive Bayes values from probabilities_dict and return the highest one"""
 		probabilities = self._probabilities_dict(action, round, board_rank)
 		max_prob = 0
 		max_rank = ""
@@ -131,32 +137,3 @@ class Classifier:
 			return 9
 		else:
 			return max_rank
-
-
-    # predicting the test set
-	def predict_probability(self, test):
-		probabilities = []
-		for i in range(len(test)):
-			result = predict(self, test[i])
-			probabilities.append(result)
-		return probabilities
-
-
-    # def mean(action):
-    #      return sum(action)/float(len(action))
-
-    #    def stdev(action):
-    #       avg = mean(action)
-    #      variance = sum([pow(x-avg,2) for x in action])/float(len(action)-1)
-    #    return math.sqrt(variance)
-
-
-	def accuracy(test, probabilities):
-		exponent = math.exp(-(math.pow(x - mean, 2) / (2 * math.pow(stdev, 2))))
-		return (1 / (math.sqrt(2 * math.pi) * stdev)) * exponent
-
-#   def normalize(possibilities):
-#        possibility_sum = sum(possibilities)
-#        for hypothesis in xrange(0,101):
-#            possibility = possibilities[hypothesis]
-#            possibilities[hypothesis] = possibility/possibility_sum
